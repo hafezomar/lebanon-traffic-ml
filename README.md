@@ -79,11 +79,11 @@ Completed. This notebook establishes the row grain, parses timestamps and coordi
 
 ### 01_sql_traffic_analysis.ipynb
 
-In progress. This notebook loads the processed data into SQLite and builds the evidence base: observation coverage, hourly patterns, road-segment frequency, segment-level velocity profiles, and candidate recurring bottlenecks.
+Completed. This notebook loads the processed data into SQLite and builds the evidence base: observation coverage, hourly patterns, road-segment frequency, segment-level velocity profiles, relative slowdowns, daily summary materialization, and the segment_features table for clustering.
 
 ### 02_machine_learning.ipynb
 
-Planned. This notebook will use unsupervised learning to group road segments by recurring movement behavior. A velocity-estimation model may be included as a supporting experiment for sparse segment-time combinations, evaluated against transparent baselines.
+Completed. This notebook clusters road segments by recurring movement behavior using unsupervised K-Means. Behavioral features (median velocity, speed variability, and AM/PM peak-hour slowdown magnitude and frequency) are scaled and passed to K-Means evaluated across k=2 through k=10. k=5 is selected using both the inertia elbow and a local silhouette-score peak, and produces five interpretable movement archetypes. The clustering cohort covers 559 segments with complete peak-hour profiles, representing approximately 3.9% of all mapped street IDs.
 
 ### 03_visualizations_and_insights.ipynb
 
@@ -97,7 +97,7 @@ Planned. This notebook will present the strongest supported findings through map
 4. Cluster segments by their temporal movement profiles.
 5. Present candidate bottlenecks and confidence indicators in a visual report.
 
-The machine-learning component supports pattern discovery; it is not presented as a system that solves congestion or predicts accidents.
+The machine-learning component supports pattern discovery through unsupervised behavioral clustering. It is not presented as a system that solves congestion, predicts accidents, or estimates velocity.
 
 ## Practical Value
 
