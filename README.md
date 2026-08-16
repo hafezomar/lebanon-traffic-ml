@@ -1,59 +1,61 @@
-# Lebanon Road Velocity Analysis and Estimation
+# Lebanon Mobility Intelligence
 
-This project analyzes road-velocity observations in Lebanon using the Tari'ak crowdsourced traffic dataset. It examines when and where observed velocities vary, then evaluates whether time, location, direction, and road-segment information can support a useful machine-learning model for estimating recorded velocity.
+This project uses the Tari'ak crowdsourced traffic dataset to identify recurring patterns in observed road movement across Lebanon. The main goal is to discover candidate mobility bottlenecks: road segments and time windows that repeatedly show low or unstable observed velocity.
 
-The project is developed as an **AI for Lebanon** project for the LebNet Tech Fellows program. It focuses on a practical local mobility dataset while being careful about what the available data can and cannot establish.
+The project is developed as an **AI for Lebanon** project for the LebNet Tech Fellows program. It is a historical mobility-intelligence prototype, not a live traffic-control or accident-prediction system.
 
 ## Project Motivation
 
-Traffic conditions affect everyday mobility, time use, and access to services. This project uses a large public dataset of observed road velocities to explore temporal and spatial variation in Lebanon and to test a focused predictive task: estimating the velocity recorded for a road observation.
+Poor transport connectivity and congestion affect commuting time, access to services, productivity, and mobility in Lebanon. However, publicly available Lebanese traffic data is limited, especially data that is detailed, geolocated, and available across time.
 
-The goal is not to claim that the dataset alone measures congestion, travel time, incidents, or the performance of Lebanon's road network. Instead, the project asks a narrower, testable question:
+This project asks:
 
-> Given the observation time, location, direction, and mapped road segment, how well can a model estimate the velocity recorded in this dataset?
+> Can crowdsourced movement observations be transformed into useful evidence about where and when recurring mobility problems appear?
 
-This framing keeps the analysis useful while respecting the limits of crowdsourced observational data.
+The intended users are transportation researchers, municipalities, public-transport planners, and mobility or logistics companies. The output can help identify locations and time windows that deserve further investigation, better data collection, or planning attention.
 
 ## Dataset
 
-The project uses the [Tari'ak Lebanon Traffic Dataset](https://github.com/ramikay/lebanon-traffic-dataset).
+The project uses the [Tari'ak Lebanon Traffic Dataset](https://github.com/ramikay/lebanon-traffic-dataset), which contains smartphone-generated movement observations map-matched to OpenStreetMap street identifiers.
 
-The raw file contains timestamped traffic observations with the following fields:
+The dataset is provided by [Tari'ak](http://tari2ak.com/) and licensed under the [Open Data Commons Open Database License (ODbL v1.0)](https://opendatacommons.org/licenses/odbl/1-0/). It is used here under the terms of that license, which requires attribution to tari2ak.com and specifies that any publicly shared or redistributed derived database remains under compatible open terms.
 
-* `Date` and `Time`
-* `Coordinate (Lon, Lat)`
-* `Course`
-* `Velocity`
-* `OSM ID`
+Each row represents one observation containing:
 
-The raw dataset is not included in this repository because of its size. To reproduce the project, place the downloaded `velocities.txt` file in:
+* `Date` and `Time` of collection
+* `Coordinate (Lon, Lat)` of the device
+* `Course`, or direction of travel in degrees
+* `Velocity`, documented by the source as meters per second
+* `OSM ID`, the matched OpenStreetMap street identifier
+
+The raw file is not included in this repository because of its size. To reproduce the project, place `velocities.txt` inside:
 
 ```text
 data/raw/
 ```
 
-The processed CSV and SQLite database are generated locally and are also excluded from version control.
+Generated processed files and the SQLite database remain local and are excluded from version control.
 
-## Dataset Feasibility Results
+## Feasibility Results
 
-Notebook 00 confirmed that the raw dataset is structurally suitable for analysis:
+Notebook 00 found:
 
 * 6,006,401 observations
-* Continuous daily coverage from March 20, 2015 through October 17, 2019 (1,673 dates)
-* 14,289 unique OpenStreetMap road-segment identifiers
+* 1,673 consecutive dates from March 20, 2015 through October 17, 2019
+* 14,289 unique mapped street identifiers
 * No missing values in the six raw columns
-* No invalid timestamps or coordinates found during the full scan
-* No exact duplicate records found during the full-dataset check
-* A continuous `Velocity` field ranging from 0 to approximately 120, with a mean of 44.982
+* No invalid timestamps or coordinate ranges found in the full scan
+* No exact duplicate records found in the full-dataset check
+* Repeated observations across both road segments and time, enabling segment-level profiles
 
-Velocity varies across hours and road segments, which provides enough repeated temporal and spatial structure to evaluate an observed-velocity estimation task. The unit and collection semantics of `Velocity` remain unverified, so the analysis avoids labeling it as km/h unless the source documentation confirms that interpretation.
+The data is suitable for historical pattern discovery and candidate-bottleneck analysis. It is not sufficient on its own to prove that a road is congested or to explain why its velocity changes.
 
 ## Project Structure
 
 ```text
 lebanon-traffic-ml/
 ├── data/
-│   ├── raw/                         # Downloaded Tari'ak source data, not tracked by Git
+│   ├── raw/                         # Downloaded source data, not tracked by Git
 │   └── processed/                   # Generated CSV and SQLite database, not tracked by Git
 ├── notebooks/
 │   ├── 00_dataset_feasibility.ipynb
@@ -73,37 +75,46 @@ lebanon-traffic-ml/
 
 ### 00_dataset_feasibility.ipynb
 
-Completed. This notebook establishes the row structure, parses timestamps and coordinates, checks missingness and validity, measures temporal coverage, checks full-dataset duplicates, summarizes road-segment and hourly structure, and exports a clean modeling dataset.
-
-The processed output adds reusable fields including `timestamp`, `year`, `month`, `day_of_week`, `hour`, `longitude`, `latitude`, `course`, `velocity`, and `osm_id`.
+Completed. This notebook establishes the row grain, parses timestamps and coordinates, checks raw validity, measures coverage, checks duplicates, summarizes road-segment and hourly structure, documents the project's scope, and exports cleaned analysis data.
 
 ### 01_sql_traffic_analysis.ipynb
 
-In progress. This notebook loads the processed data into SQLite and will answer focused SQL questions about hourly patterns, weekday and weekend differences, repeated road segments, low observed-velocity segments, and monthly trends.
+In progress. This notebook loads the processed data into SQLite and builds the evidence base: observation coverage, hourly patterns, road-segment frequency, segment-level velocity profiles, and candidate recurring bottlenecks.
 
 ### 02_machine_learning.ipynb
 
-Planned. This notebook will evaluate chronological machine-learning baselines for estimating observed velocity. Candidate features include time-of-day, calendar variables, coordinates, course, and road-segment identifiers.
-
-The evaluation will use chronological train, validation, and test splits. A random split would risk leakage because the same segments are observed repeatedly over time.
+Planned. This notebook will use unsupervised learning to group road segments by recurring movement behavior. A velocity-estimation model may be included as a supporting experiment for sparse segment-time combinations, evaluated against transparent baselines.
 
 ### 03_visualizations_and_insights.ipynb
 
-Planned. This notebook will present the strongest supported temporal, spatial, and modeling findings with clear limitations and reproducible figures.
+Planned. This notebook will present the strongest supported findings through maps, rankings, temporal comparisons, cluster summaries, and an explanation of practical use cases and limitations.
 
-## Planned Modeling Approach
+## Planned Approach
 
-The proposed target is `velocity`.
+1. Aggregate observations by road segment and time period.
+2. Calculate average or median velocity, variation, observation count, and low-velocity frequency.
+3. Identify segments with recurring slow or unstable patterns while filtering out poorly observed segments.
+4. Cluster segments by their temporal movement profiles.
+5. Present candidate bottlenecks and confidence indicators in a visual report.
 
-The first model comparisons will include simple baselines such as the overall mean, hour-of-day mean, and road-segment mean. Machine-learning models will only be considered useful if they improve meaningfully over those baselines on unseen future observations.
+The machine-learning component supports pattern discovery; it is not presented as a system that solves congestion or predicts accidents.
 
-Candidate evaluation metrics include MAE and RMSE. Results will be reported alongside the baseline performance, not as isolated model scores.
+## Practical Value
+
+The resulting tool could help:
+
+* Municipalities and transport planners prioritize locations for investigation or future data collection.
+* Public-transport planners compare corridors and time windows where mobility is repeatedly slow.
+* Logistics and fleet operators identify historically unreliable corridors as one input into planning.
+* Researchers and NGOs build a baseline for mobility analysis in a data-limited environment.
+
+These are decision-support use cases. The project does not claim that the analysis alone can justify infrastructure investment or prove the cause of a slowdown.
 
 ## Limitations
 
-The dataset does not include vehicle identifiers, road capacity, speed limits, route context, weather, incidents, or a verified velocity unit. It also represents recorded crowdsourced observations rather than a complete census of all traffic in Lebanon.
+The data is historical, crowdsourced, and not a complete census of traffic. It does not include vehicle identifiers, traffic volume, road capacity, speed limits, route context, weather, incidents, public-transport routes, or current real-time observations. Sampling may be uneven across locations and times.
 
-As a result, the project will describe observed patterns and model-estimation performance carefully. It will not make causal claims about why velocity changes or present the model as a real-time routing or congestion system.
+The project therefore cannot reliably claim to measure live congestion, accidents, travel time, emissions, or causal effects. The results should be interpreted as candidate historical patterns that require validation with better and newer data.
 
 ## Tools Used
 
@@ -119,4 +130,8 @@ As a result, the project will describe observed patterns and model-estimation pe
 
 ## License
 
-This project is licensed under the MIT License. The Tari'ak dataset remains subject to its original terms and ownership.
+The source code and analytical notebooks in this repository are licensed under the [MIT License](LICENSE).
+
+The underlying Tari'ak traffic dataset and any derived data artifacts generated from it remain subject to the [Open Data Commons Open Database License (ODbL v1.0)](https://opendatacommons.org/licenses/odbl/1-0/) by [Tari'ak](http://tari2ak.com/).
+
+Thank you for checking this project out! :)
