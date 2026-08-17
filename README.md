@@ -87,7 +87,7 @@ Completed. This notebook clusters road segments by recurring movement behavior u
 
 ### 03_visualizations_and_insights.ipynb
 
-Planned. This notebook will present the strongest supported findings through maps, rankings, temporal comparisons, cluster summaries, and an explanation of practical use cases and limitations.
+Completed. This notebook presents the decision-support outputs: a candidate mobility-bottleneck ranking using explainable expected-slowdown scoring and observation confidence indicators, a 24-hour temporal profile visualization comparing recurring hourly slowdowns across the five behavioral clusters, and a geospatial scatter map displaying all 559 qualified segments while highlighting the top candidate bottlenecks across Lebanon. The 559-segment (~3.9% of mapped network) coverage caveat is maintained across all presentations.
 
 ## Planned Approach
 
